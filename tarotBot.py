@@ -34,6 +34,36 @@ with open("detailedMeanings.txt",errors='ignore') as f:
 
 print(meanings)
 
+async def draw(message, meanings):
+    broken = False
+    choice1 = random.choice(list(meanings.items()))
+    choice2 = random.choice(list(meanings.items()))
+    choice3 = random.choice(list(meanings.items()))
+    button = await message.channel.send("Select 1, 2, or 3")
+    await message.channel.send(file=discord.File('card back purple 3.png'))
+    msg = await client.wait_for('message', timeout=30)
+    msg = msg.content
+    if msg == "1":
+        card = meanings[choice1[0]]
+    elif msg == "2":
+        card = meanings[choice2[0]]
+    elif msg == "3":
+        card = meanings[choice3[0]]
+    else:
+        await message.channel.send('I didn\'t get that :( ')
+
+    if broken == False:
+        drawn = card
+        await message.channel.send(drawn.pic)
+        if rev == False:
+            await message.channel.send("*" + drawn.name + "*\n**Upright:** ***" + drawn.up + "***")
+            if 'full' in message.content.lower():
+                string = drawn.upB
+                firstpart, secondpart = string[:len(string)//2], string[len(string)//2:]
+                await message.channel.send("```" + firstpart + "```")
+                await message.channel.send("```" + secondpart + "```")
+    broken = True
+
 @client.event
 async def on_ready():
     for guild in client.guilds:
@@ -51,7 +81,7 @@ async def on_message(message):
         return
 
 
-    if message.content.startswith(prefix + 't') or 'tarotbot' in message.mentions[0].name.lower(): #check for prefix
+    if message.content.startswith(prefix + 't') or '> ' in message.content.lower(): #check for prefix
         print(message)
         print (message.content.lower())
         print (message.mentions)
@@ -66,7 +96,7 @@ async def on_message(message):
             broken = True
             await message.channel.send('Hi! Thanks for asking for help, my name is Gaia!\nHere is a list of my commands:\n*!t two of wands* : this command will give you the definition of the card! add full to see the longer description, and add rev to see reversed.\n*!t random [prompt]* or *@tarotBot [prompt]* : this will pull a random card for you, pertaining to the prompt.\n*!t draw [prompt]* : draws three cards randomy and asks you to choose one.')
 
-        if ('random' in message.content.lower() or 'tarotbot' in message.mentions[0].name.lower()) and broken == False: # get a quick random card
+        if ('random' in message.content.lower() or '> ' in message.content.lower()) and broken == False: # get a quick random card
             choice = random.choice(list(meanings.items()))
             card = meanings[choice[0]]
             await message.channel.send(card.pic)
@@ -79,42 +109,12 @@ async def on_message(message):
                 await message.channel.send("```" + secondpart + "```")
             broken = True
 
+        if ('peace' in message.content.lower() and broken == False):
+            print('kendale')
+
+
         if 'draw' in message.content.lower() and broken == False: # get a draw
-            choice1 = random.choice(list(meanings.items()))
-            choice2 = random.choice(list(meanings.items()))
-            choice3 = random.choice(list(meanings.items()))
-            button = await message.channel.send("Select 1, 2, or 3")
-            await message.channel.send(file=discord.File('card back purple 3.png'))
-            msg = await client.wait_for('message', timeout=30)
-            msg = msg.content
-            if msg == "1":
-                card = meanings[choice1[0]]
-            elif msg == "2":
-                card = meanings[choice2[0]]
-            elif msg == "3":
-                card = meanings[choice3[0]]
-            else:
-                await message.channel.send('I didn\'t get that :( ')
-
-                broken = True
-
-            if broken == False:
-                drawn = card
-                await message.channel.send(drawn.pic)
-                if rev == False:
-                    await message.channel.send("*" + drawn.name + "*\n**Upright:** ***" + drawn.up + "***")
-                    if 'full' in message.content.lower():
-                        string = drawn.upB
-                        firstpart, secondpart = string[:len(string)//2], string[len(string)//2:]
-                        await message.channel.send("```" + firstpart + "```")
-                        await message.channel.send("```" + secondpart + "```")
-            broken = True
-
-
-        if (broken == False and 'peace' in message.content.lower()):
-            peace()
-
-
+            await draw(message, meanings)
 
 
 
