@@ -6,6 +6,8 @@ import random
 import discord
 from dotenv import load_dotenv
 
+from datetime import datetime
+
 class Card:
   def __init__(self, name, up, rev, upB, revB, pic):
     self.name = name
@@ -55,14 +57,40 @@ async def draw(message, meanings):
     if broken == False:
         drawn = card
         await message.channel.send(drawn.pic)
-        if rev == False:
-            await message.channel.send("*" + drawn.name + "*\n**Upright:** ***" + drawn.up + "***")
-            if 'full' in message.content.lower():
-                string = drawn.upB
-                firstpart, secondpart = string[:len(string)//2], string[len(string)//2:]
-                await message.channel.send("```" + firstpart + "```")
-                await message.channel.send("```" + secondpart + "```")
+        await message.channel.send("*" + drawn.name + "*\n**Upright:** ***" + drawn.up + "***")
+        if 'full' in message.content.lower():
+            string = drawn.upB
+            firstpart, secondpart = string[:len(string)//2], string[len(string)//2:]
+            await message.channel.send("```" + firstpart + "```")
+            await message.channel.send("```" + secondpart + "```")
     broken = True
+
+async def randomCard(message, meanings):
+    reversed = False
+    seed = message.content + str(datetime.now())
+    random.seed(seed)
+    choice = random.choice(list(meanings.items()))
+    card = meanings[choice[0]]
+    if 'rev' in message.content.lower():
+        reversed = bool(random.getrandbits(1))
+    if reversed == False:
+        await message.channel.send(card.pic)
+        await message.channel.send("Gaia gives you *" +card.name + "*")
+        await message.channel.send("**Upright:** ***" + card.up + "***")
+        if 'full' in message.content.lower():
+            string = card.upB
+            firstpart, secondpart = string[:len(string)//2], string[len(string)//2:]
+            await message.channel.send("```" + firstpart + "```")
+            await message.channel.send("```" + secondpart + "```")
+    else:
+        await message.channel.send(card.pic)
+        await message.channel.send("Gaia gives you *" +card.name + "* Reversed")
+        await message.channel.send("**Reversed:** ***" + card.rev + "***")
+        if 'full' in message.content.lower():
+            string = card.revB
+            firstpart, secondpart = string[:len(string)//2], string[len(string)//2:]
+            await message.channel.send("```" + firstpart + "```")
+            await message.channel.send("```" + secondpart + "```")
 
 @client.event
 async def on_ready():
@@ -86,10 +114,7 @@ async def on_message(message):
         print (message.content.lower())
         print (message.mentions)
         print("====================================")
-        broken = False
-        if 'exit' in message.content.lower():
-            await message.channel.send("Shutting down")
-        #    sys.exit()
+        broken = False #keep track of flow
         rev = False #keeps track of reversed
 
         if (broken == False and (message.content.startswith(prefix + 't help') or '> help' in message.content.lower())):
@@ -97,26 +122,17 @@ async def on_message(message):
             await message.channel.send('Hi! Thanks for asking for help, my name is Gaia!\nHere is a list of my commands:\n*!t two of wands* : this command will give you the definition of the card! add full to see the longer description, and add rev to see reversed.\n*!t random [prompt]* or *@tarotBot [prompt]* : this will pull a random card for you, pertaining to the prompt.\n*!t draw [prompt]* : draws three cards randomy and asks you to choose one.')
 
         if ('random' in message.content.lower() or '> ' in message.content.lower()) and broken == False: # get a quick random card
-            choice = random.choice(list(meanings.items()))
-            card = meanings[choice[0]]
-            await message.channel.send(card.pic)
-            await message.channel.send("Gaia gives you *" +card.name + "*")
-            await message.channel.send("**Upright:** ***" + card.up + "***")
-            if 'full' in message.content.lower():
-                string = card.upB
-                firstpart, secondpart = string[:len(string)//2], string[len(string)//2:]
-                await message.channel.send("```" + firstpart + "```")
-                await message.channel.send("```" + secondpart + "```")
+            await randomCard(message, meanings)
             broken = True
-
-        if ('peace' in message.content.lower() and broken == False):
-            print('kendale')
 
 
         if 'draw' in message.content.lower() and broken == False: # get a draw
             await draw(message, meanings)
+            broken = True
 
 
+        if ('peace' in message.content.lower() and broken == False):
+            print('kendale')
 
         if 'reversed' in message.content.lower() or'rev' in message.content.lower(): # read a cards
             rev = True
