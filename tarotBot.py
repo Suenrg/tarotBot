@@ -64,6 +64,7 @@ async def draw(message, meanings):
             await message.channel.send("```" + firstpart + "```")
             await message.channel.send("```" + secondpart + "```")
     broken = True
+    return(card)
 
 async def randomCard(message, meanings):
     reversed = False
@@ -92,6 +93,35 @@ async def randomCard(message, meanings):
             await message.channel.send("```" + firstpart + "```")
             await message.channel.send("```" + secondpart + "```")
 
+
+async def peace(message, meanings):
+    if(len(message.mentions) != 2):
+        await message.channel.send("I'm sorry, please use the correct format and @ both players and nobody else")
+    p1 = message.mentions[0]
+    p2 = message.mentions[1]
+
+    s1 = 0
+    s2 = 0
+    round = 1
+
+    while (s1 < 2 and s2 < 2):
+        await message.channel.send("Peace! Round " + round + "\n" + p1.nick +": " + s1 + ", " + p2.nick + ": " + s2)
+        await message.channel.send(p1.nick + " draws!")
+        card1 = await draw(p1.nick, meanings)
+        await message.channel.send(p2.nick + " draws!")
+        card2 = await draw(p2.nick, meanings)
+        m1 = await message.channel.send(p1.nick + "\'s card: " + card1.pic)
+        await bot.add_reaction(m1, "\:peace:")
+        m2 = await message.channel.send(p2.nick + "\'s card: " + card2.pic)
+        await bot.add_reaction(m2, "\:peace:")
+        s1 += 1
+        round += 1
+    await message.channel.send("The game is over! I haven't coded this yet")
+
+
+
+
+
 @client.event
 async def on_ready():
     for guild in client.guilds:
@@ -117,17 +147,17 @@ async def on_message(message):
         broken = False #keep track of flow
         rev = False #keeps track of reversed
 
-        if (broken == False and (message.content.startswith(prefix + 't help') or '> help' in message.content.lower())):
+        if (broken == False and (message.content.startswith(prefix + 't help') or client.user.mention.lower() + " help" in message.content.lower())):
             broken = True
             await message.channel.send('Hi! Thanks for asking for help, my name is Gaia!\nHere is a list of my commands:\n*!t two of wands* : this command will give you the definition of the card! add full to see the longer description, and add rev to see reversed.\n*!t random [prompt]* or *@tarotBot [prompt]* : this will pull a random card for you, pertaining to the prompt.\n*!t draw [prompt]* : draws three cards randomy and asks you to choose one.')
 
-        if ('random' in message.content.lower() or '> ' in message.content.lower()) and broken == False: # get a quick random card
+        if ('random' in message.content.lower() or client.user.mention.lower() in message.content.lower()) and broken == False: # get a quick random card
             await randomCard(message, meanings)
             broken = True
 
 
         if 'draw' in message.content.lower() and broken == False: # get a draw
-            await draw(message, meanings)
+            tmp = await draw(message, meanings)
             broken = True
 
 
