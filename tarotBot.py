@@ -105,14 +105,16 @@ async def peace(message, meanings):
     round = 1
 
     while (s1 < 2 and s2 < 2):
-        await message.channel.send("Peace! Round " + round + "\n" + p1.nick +": " + s1 + ", " + p2.nick + ": " + s2)
+        await message.channel.send("Peace! Round " + str(round) + "\n" + p1.nick +": " + str(s1) + ", " + p2.nick + ": " + str(s2))
         await message.channel.send(p1.nick + " draws!")
-        card1 = await draw(p1.nick, meanings)
+        card1 = await draw(message, meanings)
         await message.channel.send(p2.nick + " draws!")
-        card2 = await draw(p2.nick, meanings)
-        m1 = await message.channel.send(p1.nick + "\'s card: " + card1.pic)
+        card2 = await draw(message, meanings)
+        m1 = await message.channel.send("==============================\n"p1.nick + "\'s card: " + card1.pic)
+        await message.channel.send("**Upright:** ***" + card1.up + "***")
         await bot.add_reaction(m1, "\:peace:")
         m2 = await message.channel.send(p2.nick + "\'s card: " + card2.pic)
+        await message.channel.send("**Upright:** ***" + card2.up + "***")
         await bot.add_reaction(m2, "\:peace:")
         s1 += 1
         round += 1
@@ -139,7 +141,7 @@ async def on_message(message):
         return
 
 
-    if message.content.startswith(prefix + 't') or '> ' in message.content.lower(): #check for prefix
+    if message.content.startswith(prefix + 't') or client.user.mention.lower() in message.content.lower(): #check for prefix
         print(message)
         print (message.content.lower())
         print (message.mentions)
@@ -162,7 +164,9 @@ async def on_message(message):
 
 
         if ('peace' in message.content.lower() and broken == False):
-            print('kendale')
+            await peace(message, meanings)
+
+            broken == True
 
         if 'reversed' in message.content.lower() or'rev' in message.content.lower(): # read a cards
             rev = True
