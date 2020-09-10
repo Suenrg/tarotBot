@@ -2,6 +2,7 @@
 import os
 import sys
 import random
+import asyncio
 
 import discord
 from dotenv import load_dotenv
@@ -36,7 +37,7 @@ with open("detailedMeanings.txt",errors='ignore') as f:
 
 print(meanings)
 
-async def draw(message, meanings):
+async def draw(message, meanings, v):
     broken = False
     choice1 = random.choice(list(meanings.items()))
     choice2 = random.choice(list(meanings.items()))
@@ -54,6 +55,10 @@ async def draw(message, meanings):
     else:
         await message.channel.send('I didn\'t get that :( ')
 
+    if v == False:
+        await message.channel.send("You drew *"+card.name+"*")
+        broken = True
+
     if broken == False:
         drawn = card
         await message.channel.send(drawn.pic)
@@ -67,6 +72,7 @@ async def draw(message, meanings):
     return(card)
 
 async def randomCard(message, meanings):
+    print("am I getting called?")
     reversed = False
     seed = message.content + str(datetime.now())
     random.seed(seed)
@@ -75,6 +81,7 @@ async def randomCard(message, meanings):
     if 'rev' in message.content.lower():
         reversed = bool(random.getrandbits(1))
     if reversed == False:
+        print('this should go twice')
         await message.channel.send(card.pic)
         await message.channel.send("Gaia gives you *" +card.name + "*")
         await message.channel.send("**Upright:** ***" + card.up + "***")
@@ -104,21 +111,97 @@ async def peace(message, meanings):
     s2 = 0
     round = 1
 
+    emoji = '☮️'
+    endmoji = '🔚'
+
+
     while (s1 < 2 and s2 < 2):
-        await message.channel.send("Peace! Round " + str(round) + "\n" + p1.nick +": " + str(s1) + ", " + p2.nick + ": " + str(s2))
-        await message.channel.send(p1.nick + " draws!")
-        card1 = await draw(message, meanings)
-        await message.channel.send(p2.nick + " draws!")
-        card2 = await draw(message, meanings)
-        m1 = await message.channel.send("==============================\n"p1.nick + "\'s card: " + card1.pic)
+        await message.channel.send("========================================================================== \n ***Peace! Round " + str(round) + "***\n" + str(p1.nick) +": *" + str(s1) + "*, " + str(p2.nick) + ": *" + str(s2) + "* \n ==========================================================================")
+
+        await message.channel.send(str(p1.nick) + " draws!")
+        card1 = await draw(message, meanings, False)
+        await asyncio.sleep(1)
+
+        await message.channel.send(str(p2.nick) + " draws!")
+        card2 = await draw(message, meanings, False)
+        await asyncio.sleep(1)
+
+        m1 = await message.channel.send("==============================\n" + str(p1.nick) + "\'s card: " + card1.pic)
         await message.channel.send("**Upright:** ***" + card1.up + "***")
-        await bot.add_reaction(m1, "\:peace:")
-        m2 = await message.channel.send(p2.nick + "\'s card: " + card2.pic)
+        await m1.add_reaction(emoji)
+
+        m2 = await message.channel.send(str(p2.nick) + "\'s card: " + card2.pic)
         await message.channel.send("**Upright:** ***" + card2.up + "***")
-        await bot.add_reaction(m2, "\:peace:")
-        s1 += 1
+        await m2.add_reaction(emoji)
+
+        end = await message.channel.send("React to me to finish voting!")
+        await end.add_reaction(endmoji)
+
+        await message.channel.send("==========================================================================")
+
+
+        ####################################### Code that handles reactions
+        fin = False
+        r1 = 0 # r1 score
+        r2 = 0 # r2 score
+
+        while(fin == False):
+            def check(reaction, user):
+                    return user != end.author and (user == p1 or user == p2)
+            try:
+                reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
+            except asyncio.TimeoutError:
+                print("timed out")
+                fin = True
+            else:
+                if reaction.message.id == end.id:
+                    #if reaction.emoji == endmoji:
+                    #    print('endmoji')
+                    fin = True
+                elif reaction.message.id == m1.id:
+                    #if reaction.emoji == emoji:
+                    print('m1 score')
+                    await message.channel.send(str(p1.nick) + "scores!")
+                    r1 += 1
+                elif reaction.message.id == m2.id:
+                    #if reaction.emoji == emoji:
+                    print('m2 score')
+                    await message.channel.send(str(p2.nick) + "scores!")
+                    r2 += 1
+        #######################################
+
+        if r1 >= r2:
+            s1 += 1
+        else:
+            s2 += 1
         round += 1
-    await message.channel.send("The game is over! I haven't coded this yet")
+
+    if s1 == 2:
+        await message.channel.send(str(p1.nick) + " wins and finds peace")
+        broken = True
+    elif s2 == 2:
+        await message.channel.send(str(p2.nick) + " wins and finds peace")
+        broken = True
+    broken = True
+
+async def test(message, meanings):
+    emoji = '\N{THUMBS UP SIGN}'
+    mess = await message.channel.send("This is a test!")
+    await mess.add_reaction(emoji)
+    print(mess.reactions)
+
+    def check(reaction, user):
+            return user != mess.author and str(reaction.emoji) == emoji
+
+    try:
+        reaction, user = await client.wait_for('reaction_add', timeout=10.0, check=check)
+    except asyncio.TimeoutError:
+        await message.channel.send('nobody reacted :(')
+    else:
+        await message.channel.send(':o you reacted to me!!! ^////^')
+        print(mess.reactions)
+
+
 
 
 
@@ -141,32 +224,40 @@ async def on_message(message):
         return
 
 
-    if message.content.startswith(prefix + 't') or client.user.mention.lower() in message.content.lower(): #check for prefix
+    if message.content.startswith(prefix + 't') or client.user.mention.lower()[3:] in message.content.lower(): #check for prefix
+        #print(client.user.mention.lower()[3:])
+        print("====================================")
         print(message)
         print (message.content.lower())
-        print (message.mentions)
+        #print (message.mentions)
         print("====================================")
         broken = False #keep track of flow
         rev = False #keeps track of reversed
 
-        if (broken == False and (message.content.startswith(prefix + 't help') or client.user.mention.lower() + " help" in message.content.lower())):
+        if (broken == False and (message.content.startswith(prefix + 't help') or client.user.mention.lower()[:3] + " help" in message.content.lower())):
             broken = True
             await message.channel.send('Hi! Thanks for asking for help, my name is Gaia!\nHere is a list of my commands:\n*!t two of wands* : this command will give you the definition of the card! add full to see the longer description, and add rev to see reversed.\n*!t random [prompt]* or *@tarotBot [prompt]* : this will pull a random card for you, pertaining to the prompt.\n*!t draw [prompt]* : draws three cards randomy and asks you to choose one.')
 
-        if ('random' in message.content.lower() or client.user.mention.lower() in message.content.lower()) and broken == False: # get a quick random card
-            await randomCard(message, meanings)
+        if 'test' in message.content.lower() and broken == False:
+            print('testing')
+            await test(message, meanings)
             broken = True
 
-
         if 'draw' in message.content.lower() and broken == False: # get a draw
-            tmp = await draw(message, meanings)
+            print('Drawing')
+            tmp = await draw(message, meanings, True)
             broken = True
 
 
         if ('peace' in message.content.lower() and broken == False):
+            print("Playing Peace")
             await peace(message, meanings)
-
             broken == True
+
+        if ('random' in message.content.lower() or client.user.mention.lower()[3:] in message.content.lower()) and broken == False: # get a quick random card
+            print("Pulling random")
+            await randomCard(message, meanings)
+            broken = True
 
         if 'reversed' in message.content.lower() or'rev' in message.content.lower(): # read a cards
             rev = True
