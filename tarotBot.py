@@ -37,42 +37,69 @@ with open("detailedMeanings.txt",errors='ignore') as f:
 
 print(meanings)
 
-async def draw(message, meanings, v):
+async def draw(message, meanings, v, userN):
     broken = False
     choice1 = random.choice(list(meanings.items()))
     choice2 = random.choice(list(meanings.items()))
     choice3 = random.choice(list(meanings.items()))
     button = await message.channel.send("Select 1, 2, or 3")
-    await message.channel.send(file=discord.File('card back purple 3.png'))
-    msg = await client.wait_for('message', timeout=30)
-    msg = msg.content
-    if msg == "1":
-        card = meanings[choice1[0]]
-    elif msg == "2":
-        card = meanings[choice2[0]]
-    elif msg == "3":
-        card = meanings[choice3[0]]
+    mess = await message.channel.send(file=discord.File('card back purple 3.png'))
+    # msg = await client.wait_for('message', timeout=30)
+    # msg = msg.content
+    # if msg == "1":
+    #     card = meanings[choice1[0]]
+    # elif msg == "2":
+    #     card = meanings[choice2[0]]
+    # elif msg == "3":
+    #     card = meanings[choice3[0]]
+    # else:
+    #     await message.channel.send('I didn\'t get that :( ')
+    e1 = "1️⃣"
+    e2 = "2️⃣"
+    e3 = "3️⃣"
+    await mess.add_reaction(e1)
+    await mess.add_reaction(e2)
+    await mess.add_reaction(e3)
+    def check(reaction, user):
+            return user != mess.author and (user == userN)
+    try:
+        reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
+    except asyncio.TimeoutError:
+        print("timed out")
+        await message.channel.send("You forgot about me :(")
+        broken = True
     else:
-        await message.channel.send('I didn\'t get that :( ')
+        if reaction.emoji == e1:
+            card = meanings[choice1[0]]
+        elif reaction.emoji == e2:
+            card = meanings[choice2[0]]
+        elif reaction.emoji == e3:
+            card = meanings[choice3[0]]
+
+
+
+
 
     if v == False:
         await message.channel.send("You drew *"+card.name+"*")
         broken = True
 
     if broken == False:
-        drawn = card
-        await message.channel.send(drawn.pic)
-        await message.channel.send("*" + drawn.name + "*\n**Upright:** ***" + drawn.up + "***")
-        if 'full' in message.content.lower():
-            string = drawn.upB
-            firstpart, secondpart = string[:len(string)//2], string[len(string)//2:]
-            await message.channel.send("```" + firstpart + "```")
-            await message.channel.send("```" + secondpart + "```")
+        async with message.channel.typing():
+            drawn = card
+            await message.channel.send(drawn.pic)
+            await message.channel.send("*" + drawn.name + "*\n**Upright:** ***" + drawn.up + "***")
+            if 'full' in message.content.lower():
+                string = drawn.upB
+                firstpart, secondpart = string[:len(string)//2], string[len(string)//2:]
+                await message.channel.send("```" + firstpart + "```")
+                await message.channel.send("```" + secondpart + "```")
+    await button.delete()
+    await mess.delete()
     broken = True
     return(card)
 
 async def randomCard(message, meanings):
-    print("am I getting called?")
     reversed = False
     seed = message.content + str(datetime.now())
     random.seed(seed)
@@ -81,7 +108,6 @@ async def randomCard(message, meanings):
     if 'rev' in message.content.lower():
         reversed = bool(random.getrandbits(1))
     if reversed == False:
-        print('this should go twice')
         await message.channel.send(card.pic)
         await message.channel.send("Gaia gives you *" +card.name + "*")
         await message.channel.send("**Upright:** ***" + card.up + "***")
@@ -110,21 +136,22 @@ async def peace(message, meanings):
     s1 = 0
     s2 = 0
     round = 1
+    broken = False
 
     emoji = '☮️'
     endmoji = '🔚'
 
 
-    while (s1 < 2 and s2 < 2):
+    while (s1 < 2 and s2 < 2 and broken == False):
         await message.channel.send("========================================================================== \n ***Peace! Round " + str(round) + "***\n" + str(p1.nick) +": *" + str(s1) + "*, " + str(p2.nick) + ": *" + str(s2) + "* \n ==========================================================================")
 
-        await message.channel.send(str(p1.nick) + " draws!")
-        card1 = await draw(message, meanings, False)
-        await asyncio.sleep(1)
+        await message.channel.send(str(p1.mention) + " draws!")
+        card1 = await draw(message, meanings, False, p1)
+        #await asyncio.sleep(1)
 
-        await message.channel.send(str(p2.nick) + " draws!")
-        card2 = await draw(message, meanings, False)
-        await asyncio.sleep(1)
+        await message.channel.send(str(p2.mention) + " draws!")
+        card2 = await draw(message, meanings, False, p2)
+        #await asyncio.sleep(1)
 
         m1 = await message.channel.send("==============================\n" + str(p1.nick) + "\'s card: " + card1.pic)
         await message.channel.send("**Upright:** ***" + card1.up + "***")
@@ -149,9 +176,11 @@ async def peace(message, meanings):
             def check(reaction, user):
                     return user != end.author and (user == p1 or user == p2)
             try:
-                reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
+                reaction, user = await client.wait_for('reaction_add', timeout=120.0, check=check)
             except asyncio.TimeoutError:
                 print("timed out")
+                await message.channel.send("You forgot about me :(")
+                broken = True
                 fin = True
             else:
                 if reaction.message.id == end.id:
@@ -161,20 +190,21 @@ async def peace(message, meanings):
                 elif reaction.message.id == m1.id:
                     #if reaction.emoji == emoji:
                     print('m1 score')
-                    await message.channel.send(str(p1.nick) + "scores!")
                     r1 += 1
                 elif reaction.message.id == m2.id:
                     #if reaction.emoji == emoji:
                     print('m2 score')
-                    await message.channel.send(str(p2.nick) + "scores!")
                     r2 += 1
         #######################################
 
-        if r1 >= r2:
-            s1 += 1
-        else:
-            s2 += 1
-        round += 1
+        if broken == False:
+            if r1 >= r2:
+                s1 += 1
+                await message.channel.send(str(p1.nick) + " scores!")
+            else:
+                s2 += 1
+                await message.channel.send(str(p2.nick) + " scores!")
+            round += 1
 
     if s1 == 2:
         await message.channel.send(str(p1.nick) + " wins and finds peace")
@@ -245,14 +275,14 @@ async def on_message(message):
 
         if 'draw' in message.content.lower() and broken == False: # get a draw
             print('Drawing')
-            tmp = await draw(message, meanings, True)
+            tmp = await draw(message, meanings, True, message.author)
             broken = True
 
 
         if ('peace' in message.content.lower() and broken == False):
             print("Playing Peace")
             await peace(message, meanings)
-            broken == True
+            broken = True
 
         if ('random' in message.content.lower() or client.user.mention.lower()[3:] in message.content.lower()) and broken == False: # get a quick random card
             print("Pulling random")
@@ -286,7 +316,7 @@ async def on_message(message):
                             await message.channel.send("```" + secondpart + "```")
 
                     #break
-            if (found==False):
+            if (found == False and broken == False):
                 await message.channel.send("Are you sure you wrote the card correctly?")
 
 
