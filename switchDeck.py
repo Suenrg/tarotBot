@@ -16,7 +16,7 @@ async def switchDeck(message, url):
 
 
         else:
-            s[ma] = {'old': True}
+            s[ma]['old'] = True
             await message.channel.send("Your preference has been switched to the Biddy deck!")
     finally:
         s.close()

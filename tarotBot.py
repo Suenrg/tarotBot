@@ -13,6 +13,9 @@ from test import *
 from defs import *
 from draw import *
 from switchDeck import *
+from moon import *
+from daily import *
+from spreads import *
 
 
 
@@ -111,40 +114,52 @@ async def on_message(message):
             broken = True
             await message.channel.send('Hi! Thanks for asking for help, my name is Gaia!\nHere is a list of my commands:\n*!t two of wands* : this command will give you the definition of the card! add full to see the longer description, and add rev to see reversed.\n*!t random [prompt]* or *@tarotBot [prompt]* : this will pull a random card for you, pertaining to the prompt.\n*!t draw [prompt]* : draws three cards randomy and asks you to choose one.')
 
-        if 'TesT' in message.content.lower() and broken == False:
+        elif 'TesT' in message.content.lower() and broken == False:
             print('testing')
             await test(message, meaningsChosen)
             broken = True
 
-        if('switchdeck' in message.content.lower() and broken == False):
+        elif('switchdeck' in message.content.lower() and broken == False):
             print('switching')
             await switchDeck(message, preferences)
             broken = True
 
-        if('checkdeck' in message.content.lower() and broken == False):
+        elif('moonphase' in message.content.lower() and broken == False):
+            print('mooning')
+            await moon(message, True)
+            broken = True
+
+        elif('sleepmodenow'in message.content.lower() and broken == False):
+            print('night night')
+
+        elif('checkdeck' in message.content.lower() and broken == False):
             print('checking')
             await checkDeck(message, preferences)
             broken = True
 
-        if 'draw' in message.content.lower() and broken == False: # get a draw
+        elif 'draw' in message.content.lower() and broken == False: # get a draw
             print('Drawing')
             tmp = await draw(message, meaningsChosen, True, message.author, client)
             broken = True
 
-
-        if ('peace' in message.content.lower() and broken == False):
+        elif ('peace' in message.content.lower() and broken == False):
             print("Playing Peace")
             await peace(message, meaningsChosen)
             broken = True
 
-        if ('random' in message.content.lower() or client.user.mention.lower()[3:] in message.content.lower()) and broken == False: # get a quick random card
-            print("Pulling random")
-            await randomCard(message, meaningsChosen)
-            broken = True
+        elif ('daily' in message.content.lower()):
+            print('daily')
+            await daily(message, meaningsChosen, preferences, client)
 
-        if(broken == False):
-            await defs(message, meaningsChosen)
-            broken = True
+        elif ('spreads' in message.content.lower()):
+            print('spreads')
+            await spreads(message, meaningsChosen, client)
+
+        else:
+            found = await defs(message, meaningsChosen)
+            if (not found):
+                print("Pulling random")
+                await randomCard(message, meaningsChosen, client)
 
 
 
