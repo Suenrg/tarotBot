@@ -38,7 +38,7 @@ async def draw(message, meanings2, v, userN, client):
     await mess.add_reaction(e2)
     await mess.add_reaction(e3)
     def check(reaction, user):
-            return user != mess.author and (user == userN)
+            return user != mess.author and (user == userN) and reaction.message.id == mess.id  
     try:
         reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
     except asyncio.TimeoutError:
@@ -62,15 +62,7 @@ async def draw(message, meanings2, v, userN, client):
         broken = True
 
     if broken == False:
-        async with message.channel.typing():
-            drawn = card
-            await message.channel.send(drawn.pic)
-            await message.channel.send("*" + drawn.name + "*\n**Upright:** ***" + drawn.up + "***")
-            if 'full' in message.content.lower():
-                string = drawn.upB
-                firstpart, secondpart = string[:len(string)//2], string[len(string)//2:]
-                await message.channel.send("```" + firstpart + "```")
-                await message.channel.send("```" + secondpart + "```")
+        await dispCard(message, meanings2,  client, card, False)
     await button.delete()
     await mess.delete()
     broken = True

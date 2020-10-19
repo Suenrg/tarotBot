@@ -16,8 +16,9 @@ from switchDeck import *
 from moon import *
 from daily import *
 from spreads import *
-
-
+from help import *
+from majors import *
+from sigils import *
 
 
 class Card:
@@ -57,12 +58,12 @@ with open('scrubOut.txt',errors='ignore') as p:
         if(not(line == '\n')):
             #print(line)
             if('=====' in line):
-                print("card")
+                #print("card")
                 buffer[1] = buffer[1][9:-1].lstrip().capitalize()
                 buffer[2] = buffer[2][10:-1].lstrip().capitalize()
-                print(buffer)
+                #print(buffer)
                 meanings2[buffer[0]] = Card(buffer[0][:-1],buffer[1],buffer[2],buffer[3][:-1],'n/a',buffer[4][5:-1])
-                meanings2[buffer[0]].prints()
+                #meanings2[buffer[0]].prints()
                 buffer = []
             else:
                 buffer.append(line)
@@ -72,6 +73,8 @@ async def on_ready():
     for guild in client.guilds:
         if guild.name == GUILD:
             break
+    await client.change_presence(status=discord.Status.online, activity=discord.Game("!t help"))
+    sigils()
 
     print(
         f'{client.user} is connected to the following guild:\n'
@@ -110,9 +113,9 @@ async def on_message(message):
             s.close()
 
 
-        if (broken == False and (message.content.startswith(prefix + 't help') or client.user.mention.lower()[:3] + " help" in message.content.lower())):
-            broken = True
-            await message.channel.send('Hi! Thanks for asking for help, my name is Gaia!\nHere is a list of my commands:\n*!t two of wands* : this command will give you the definition of the card! add full to see the longer description, and add rev to see reversed.\n*!t random [prompt]* or *@tarotBot [prompt]* : this will pull a random card for you, pertaining to the prompt.\n*!t draw [prompt]* : draws three cards randomy and asks you to choose one.')
+        if (message.content.startswith(prefix + 't help') or client.user.mention.lower()[:3] + " help" in message.content.lower()):
+            print('helping')
+            await help(message, client)
 
         elif 'TesT' in message.content.lower() and broken == False:
             print('testing')
@@ -155,8 +158,12 @@ async def on_message(message):
             print('spreads')
             await spreads(message, meaningsChosen, client)
 
+        elif ('majors' in message.content.lower()):
+            print('majors')
+            await majors(message, meaningsChosen, client)
+
         else:
-            found = await defs(message, meaningsChosen)
+            found = await defs(message, meaningsChosen, client)
             if (not found):
                 print("Pulling random")
                 await randomCard(message, meaningsChosen, client)

@@ -14,7 +14,7 @@ async def spreads(message, meanings, client):
     await mess.add_reaction(e1)
     await mess.add_reaction(e2)
     def check(reaction, user):
-            return user != mess.author
+            return user != mess.author and reaction.message.id == mess.id
     try:
         reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
     except asyncio.TimeoutError:
@@ -26,12 +26,20 @@ async def spreads(message, meanings, client):
             await cif(message, meanings, client)
 
 async def ppp(message, meanings, client):
-    await message.channel.send("***Past:***\n")
-    await randomCard(message, meanings, client)
-    await message.channel.send("***Present:***\n")
-    await randomCard(message, meanings, client)
-    await message.channel.send("***Future***:\n")
-    await randomCard(message, meanings, client)
+    # await message.channel.send("***Past:***\n")
+    # await randomCard(message, meanings, client)
+    # await message.channel.send("***Present:***\n")
+    # await randomCard(message, meanings, client)
+    # await message.channel.send("***Future***:\n")
+    # await randomCard(message, meanings, client)
+    await asyncio.gather(
+        message.channel.send("***Past:***\n"),
+        randomCard(message, meanings, client),
+        message.channel.send("***Present:***\n"),
+        randomCard(message, meanings, client),
+        message.channel.send("***Future***:\n"),
+        randomCard(message, meanings, client)
+    )
 
 async def cif(message, meanings, client):
     await message.channel.send("***Cause:***\n")
