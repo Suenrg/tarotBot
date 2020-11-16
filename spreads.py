@@ -42,9 +42,11 @@ async def ppp(message, meanings, client):
     )
 
 async def cif(message, meanings, client):
-    await message.channel.send("***Cause:***\n")
-    await randomCard(message, meanings, client)
-    await message.channel.send("***Issue:***\n")
-    await randomCard(message, meanings, client)
-    await message.channel.send("***Focus:***\n")
-    await randomCard(message, meanings, client)
+    await asyncio.gather(
+        message.channel.send("***Cause:***\n")
+        randomCard(message, meanings, client)
+        message.channel.send("***Issue:***\n")
+        randomCard(message, meanings, client)
+        message.channel.send("***Focus:***\n")
+        randomCard(message, meanings, client)
+    )
