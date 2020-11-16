@@ -19,6 +19,7 @@ from spreads import *
 from help import *
 from majors import *
 from sigils import *
+from vibes import *
 
 
 class Card:
@@ -101,6 +102,10 @@ async def on_message(message):
 
         s = shelve.open(preferences)
         ma = str(message.author)
+        if('cleansedata' in  message.content.lower()):
+            s[ma] ={'old': False}
+            await message.channel.send('Your data has been cleansed! :)')
+            broken = True;
         try:
             if ma in s:
                 if s[ma]['old'] == True:
@@ -112,61 +117,65 @@ async def on_message(message):
         finally:
             s.close()
 
+        if (broken == False):
+            if (message.content.startswith(prefix + 't help') or client.user.mention.lower()[:3] + " help" in message.content.lower()):
+                print('helping')
+                await help(message, client)
 
-        if (message.content.startswith(prefix + 't help') or client.user.mention.lower()[:3] + " help" in message.content.lower()):
-            print('helping')
-            await help(message, client)
+            elif 'TesT' in message.content.lower() and broken == False:
+                print('testing')
+                await test(message, meaningsChosen)
+                broken = True
 
-        elif 'TesT' in message.content.lower() and broken == False:
-            print('testing')
-            await test(message, meaningsChosen)
-            broken = True
+            elif('switchdeck' in message.content.lower() and broken == False):
+                print('switching')
+                await switchDeck(message, preferences)
+                broken = True
 
-        elif('switchdeck' in message.content.lower() and broken == False):
-            print('switching')
-            await switchDeck(message, preferences)
-            broken = True
+            elif('moonphase' in message.content.lower() and broken == False):
+                print('mooning')
+                await moon(message, True)
+                broken = True
 
-        elif('moonphase' in message.content.lower() and broken == False):
-            print('mooning')
-            await moon(message, True)
-            broken = True
+            elif('sleepmodenow'in message.content.lower() and broken == False):
+                print('night night')
 
-        elif('sleepmodenow'in message.content.lower() and broken == False):
-            print('night night')
+            elif('checkdeck' in message.content.lower() and broken == False):
+                print('checking')
+                await checkDeck(message, preferences)
+                broken = True
 
-        elif('checkdeck' in message.content.lower() and broken == False):
-            print('checking')
-            await checkDeck(message, preferences)
-            broken = True
+            elif 'draw' in message.content.lower() and broken == False: # get a draw
+                print('Drawing')
+                tmp = await draw(message, meaningsChosen, True, message.author, client)
+                broken = True
 
-        elif 'draw' in message.content.lower() and broken == False: # get a draw
-            print('Drawing')
-            tmp = await draw(message, meaningsChosen, True, message.author, client)
-            broken = True
+            elif ('peace' in message.content.lower() and broken == False):
+                print("Playing Peace")
+                await peace(message, meaningsChosen)
+                broken = True
 
-        elif ('peace' in message.content.lower() and broken == False):
-            print("Playing Peace")
-            await peace(message, meaningsChosen)
-            broken = True
+            elif ('daily' in message.content.lower()):
+                print('daily')
+                await daily(message, meaningsChosen, preferences, client)
 
-        elif ('daily' in message.content.lower()):
-            print('daily')
-            await daily(message, meaningsChosen, preferences, client)
+            elif ('spreads' in message.content.lower()):
+                print('spreads')
+                await spreads(message, meaningsChosen, client)
 
-        elif ('spreads' in message.content.lower()):
-            print('spreads')
-            await spreads(message, meaningsChosen, client)
+            elif ('majors' in message.content.lower()):
+                print('majors')
+                await majors(message, meaningsChosen, client)
 
-        elif ('majors' in message.content.lower()):
-            print('majors')
-            await majors(message, meaningsChosen, client)
+            elif ('addvibe' in message.content.lower()):
+                print('vibe adding')
+                await vibeAdd(message, meaningsChosen, client)
 
-        else:
-            found = await defs(message, meaningsChosen, client)
-            if (not found):
-                print("Pulling random")
-                await randomCard(message, meaningsChosen, client)
+            else:
+                found = await defs(message, meaningsChosen, client)
+                if (not found):
+                    print("Pulling random")
+                    await randomCard(message, meaningsChosen, client)
 
 
 
