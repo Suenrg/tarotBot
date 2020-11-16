@@ -1,36 +1,32 @@
 import shelve
 import discord
+import asyncio
+from discord import Embed
 
-async def switchDeck(message, url):
-    s = shelve.open(url, writeback=True)
-    ma = str(message.author)
+async def chooseArt(message, url, client):
+    embedVar = Embed(title="Art", description="What you want your cards to look like!", color=0x8D1B80)
+    embedVar.add_field(name="Everyday Tarot", value=":milky_way: The Biddy Deck", inline=True)
+    embedVar.add_field(name="Rider Waite", value=":crystal_ball: A classic", inline=True)
+    mess = await message.channel.send(embed=embedVar)
+    e1 = "🌌"
+    e2 = "🔮"
+    await mess.add_reaction(e1)
+    await mess.add_reaction(e2)
+    def check(reaction, user):
+            return user != mess.author and reaction.message.id == mess.id and user == message.author
     try:
-
-        if ma in s:
-            print("found!")
-            s[ma]['old'] = not s[ma]['old']
-            if (s[ma]['old'] == True):
-                await message.channel.send("Your preference has been switched to the Biddy deck!")
-            else:
-                await message.channel.send("Your preference has been switched to the Rider deck!")
-
-
+        reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
+    except asyncio.TimeoutError:
+        print("timed out")
+    else:
+        if reaction.emoji == e1:
+            choice = 'Biddy'
+        elif reaction.emoji == e2:
+            choice = 'Rider'
         else:
-            s[ma]['old'] = True
-            await message.channel.send("Your preference has been switched to the Biddy deck!")
-    finally:
-        s.close()
-
-async def checkDeck(message, url):
-    s = shelve.open(url, writeback=True)
-    ma = str(message.author)
-    try:
-        if ma in s:
-            if (s[ma]['old'] == True):
-                await message.channel.send("Your preference is the Biddy deck!")
-            else:
-                await message.channel.send("Your preference is the Rider deck!")
-        else:
-            await message.channel.send("Your preference is Rider deck!")
-    finally:
-        s.close()
+            choice = 'n/a'
+        if choice != 'n/a':
+            with shelve.open(url, writeback=True) as s:
+                ma = str(message.author)
+                s[ma]['art'] = choice
+                await message.channel.send("You've chosen the " + choice + " deck!")

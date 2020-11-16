@@ -34,6 +34,7 @@ class Card:
         print("Name: " + self.name +" Up: " + self.up + " rev: "+ self.rev + " gen: "+self.upB + ' revB: '+self.revB + ' pic: '+ self.pic)
 
 
+
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
@@ -42,17 +43,17 @@ client = discord.Client()
 
 prefix = '!'
 
-meanings = {}
+biddy = {}
 with open("detailedMeanings.txt",errors='ignore') as f:
     for line in f:
         #print(line)
         split = line.split('\t')
         #print(split)
-        meanings[split[0]] = Card(split[0],split[1],split[2],split[3],split[4],split[5])
+        biddy[split[0]] = Card(split[0],split[1],split[2],split[3],split[4],split[5])
 
 #print(meanings)
 
-meanings2 = {}
+rider = {}
 with open('scrubOut.txt',errors='ignore') as p:
     buffer = []
     for line in p:
@@ -63,7 +64,7 @@ with open('scrubOut.txt',errors='ignore') as p:
                 buffer[1] = buffer[1][9:-1].lstrip().capitalize()
                 buffer[2] = buffer[2][10:-1].lstrip().capitalize()
                 #print(buffer)
-                meanings2[buffer[0]] = Card(buffer[0][:-1],buffer[1],buffer[2],buffer[3][:-1],'n/a',buffer[4][5:-1])
+                rider[buffer[0][:-1]] = Card(buffer[0][:-1],buffer[1],buffer[2],buffer[3][:-1],'n/a',buffer[4][5:-1])
                 #meanings2[buffer[0]].prints()
                 buffer = []
             else:
@@ -98,24 +99,27 @@ async def on_message(message):
         broken = False #keep track of flow
         rev = False #keeps track of reversed
         preferences = 'preferences.txt'
-        meaningsChosen = meanings2
+        words = biddy
 
-        s = shelve.open(preferences)
-        ma = str(message.author)
-        if('cleansedata' in  message.content.lower()):
-            s[ma] ={'old': False}
-            await message.channel.send('Your data has been cleansed! :)')
-            broken = True;
-        try:
+        with shelve.open(preferences) as s:
+            ma = str(message.author)
+            if('cleansedata' in  message.content.lower()):
+                s[ma] ={'art': "Rider"}
+                await message.channel.send('Your data has been cleansed! :)')
+                broken = True;
             if ma in s:
-                if s[ma]['old'] == True:
-                    meaningsChosen = meanings
+                if ('art') in s[ma]:
+                    if s[ma]['art'] == 'Biddy':
+                        art = biddy
+                    elif s[ma]['art'] == 'Rider':
+                        art = rider
                 else:
-                    meaningsChosen = meanings2
+                    art = rider
             else:
-                meaningsChosen = meanings2
-        finally:
-            s.close()
+                art = rider
+
+        meaningsChosen = (words, art)
+
 
         if (broken == False):
             if (message.content.startswith(prefix + 't help') or client.user.mention.lower()[:3] + " help" in message.content.lower()):
@@ -127,9 +131,9 @@ async def on_message(message):
                 await test(message, meaningsChosen)
                 broken = True
 
-            elif('switchdeck' in message.content.lower() and broken == False):
-                print('switching')
-                await switchDeck(message, preferences)
+            elif('chooseart' in message.content.lower() and broken == False):
+                print('art time')
+                await chooseArt(message, preferences, client)
                 broken = True
 
             elif('moonphase' in message.content.lower() and broken == False):
@@ -139,11 +143,6 @@ async def on_message(message):
 
             elif('sleepmodenow'in message.content.lower() and broken == False):
                 print('night night')
-
-            elif('checkdeck' in message.content.lower() and broken == False):
-                print('checking')
-                await checkDeck(message, preferences)
-                broken = True
 
             elif 'draw' in message.content.lower() and broken == False: # get a draw
                 print('Drawing')

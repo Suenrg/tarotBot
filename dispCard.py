@@ -4,13 +4,16 @@ from discord import Embed
 import discord
 import asyncio
 
-async def dispCard(message, meanings, client, card, rev):
+
+async def dispCard(message, meaningsChosen, client, card, rev):
+    meanings = meaningsChosen[0]
+    art = meaningsChosen[1]
     #async with message.channel.typing():
     if rev == False:
         msg = Embed(title=card.name, description=(card.up), color=message.author.color)
     else:
         msg = Embed(title=card.name +' Reversed', description=(card.rev), color=message.author.color)
-    msg.set_image(url = card.pic)
+    msg.set_image(url = art[card.name].pic)
     mess = await message.channel.send(embed = msg)
     e1 = "❓"
     await mess.add_reaction(e1)

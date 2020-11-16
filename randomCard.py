@@ -7,7 +7,8 @@ from dispCard import *
 
 
 
-async def randomCard(message, meanings, client):
+async def randomCard(message, meaningsChosen, client):
+    meanings = meaningsChosen[0]
     reversed = False
     seed = message.content + str(datetime.now())
     random.seed(seed)
@@ -15,12 +16,13 @@ async def randomCard(message, meanings, client):
     card = meanings[choice[0]]
     if 'rev' in message.content.lower():
         reversed = bool(random.getrandbits(1))
-    await dispCard(message, meanings, client, card, reversed)
+    await dispCard(message, meaningsChosen, client, card, reversed)
 
     return(card)
 
 
-async def randomCardQuiet(message, meanings, client):
+async def randomCardQuiet(message, meaningsChosen, client):
+    meanings = meaningsChosen[0]
     seed = message.content + str(datetime.now())
     random.seed(seed)
     choice = random.choice(list(meanings.items()))

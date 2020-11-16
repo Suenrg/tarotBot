@@ -6,12 +6,10 @@ from randomCard import *
 from defs import *
 
 async def daily(message, meanings, url, client):
-    s = shelve.open(url, writeback=True)
-    ma = str(message.author)
-
-    try:
+    with shelve.open(url, writeback=True) as s:
+        ma = str(message.author)
         day = datetime.now().strftime('%x')
-        if ma in s and 'day' in s[ma]:
+        if (ma in s) and ('day' in s[ma]):
             if (s[ma]['day'] != day):
                 card = await randomCard(message, meanings, client)
                 s[ma]['card'] = card
@@ -31,10 +29,7 @@ async def daily(message, meanings, url, client):
                     if reaction.emoji == e1:
                         await mess.delete()
                         await dispCard(message, meanings, client, s[ma]['card'], False)
-
-
         else: #they're not in the sheet yet
             card = await randomCard(message, meanings, client)
-            s[ma] = {'card': card, 'day': day, 'old': False}
-    finally:
-        s.close()
+            s[ma]['card'] = card
+            s[ma]['day'] = day

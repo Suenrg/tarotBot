@@ -4,6 +4,7 @@ from randomCard import *
 from defs import *
 from discord import Embed
 
+
 async def spreads(message, meanings, client):
     embedVar = Embed(title="Spreads", description="All the spreads you can choose from", color=0x8D1B80)
     embedVar.add_field(name="Past, Present, Future", value=":clock5: Get a sense for the time around you", inline=True)
@@ -26,12 +27,6 @@ async def spreads(message, meanings, client):
             await cif(message, meanings, client)
 
 async def ppp(message, meanings, client):
-    # await message.channel.send("***Past:***\n")
-    # await randomCard(message, meanings, client)
-    # await message.channel.send("***Present:***\n")
-    # await randomCard(message, meanings, client)
-    # await message.channel.send("***Future***:\n")
-    # await randomCard(message, meanings, client)
     await asyncio.gather(
         message.channel.send("***Past:***\n"),
         randomCard(message, meanings, client),
@@ -43,10 +38,10 @@ async def ppp(message, meanings, client):
 
 async def cif(message, meanings, client):
     await asyncio.gather(
-        message.channel.send("***Cause:***\n")
-        randomCard(message, meanings, client)
-        message.channel.send("***Issue:***\n")
-        randomCard(message, meanings, client)
-        message.channel.send("***Focus:***\n")
+        message.channel.send("***Cause:***\n"),
+        randomCard(message, meanings, client),
+        message.channel.send("***Issue:***\n"),
+        randomCard(message, meanings, client),
+        message.channel.send("***Focus:***\n"),
         randomCard(message, meanings, client)
     )

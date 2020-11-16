@@ -14,7 +14,8 @@ from defs import *
 from draw import *
 from switchDeck import *
 
-async def draw(message, meanings2, v, userN, client):
+async def draw(message, meaningsChosen, v, userN, client):
+    meanings2 = meaningsChosen[0]
     broken = False
     choice1 = random.choice(list(meanings2.items()))
     choice2 = random.choice(list(meanings2.items()))
@@ -38,7 +39,7 @@ async def draw(message, meanings2, v, userN, client):
     await mess.add_reaction(e2)
     await mess.add_reaction(e3)
     def check(reaction, user):
-            return user != mess.author and (user == userN) and reaction.message.id == mess.id  
+            return user != mess.author and (user == userN) and reaction.message.id == mess.id
     try:
         reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
     except asyncio.TimeoutError:
@@ -62,7 +63,7 @@ async def draw(message, meanings2, v, userN, client):
         broken = True
 
     if broken == False:
-        await dispCard(message, meanings2,  client, card, False)
+        await dispCard(message, meaningsChosen,  client, card, False)
     await button.delete()
     await mess.delete()
     broken = True
