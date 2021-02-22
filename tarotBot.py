@@ -20,7 +20,8 @@ from help import *
 from majors import *
 from sigils import *
 from vibes import *
-
+import random
+from serverSettings import *
 
 class Card:
     def __init__(self, name, up, rev, upB, revB, pic):
@@ -42,6 +43,10 @@ GUILD = os.getenv('DISCORD_GUILD')
 client = discord.Client()
 
 prefix = '!'
+settings = "serverSettings.txt"
+step = 1
+
+
 
 biddy = {}
 with open("detailedMeanings.txt",errors='ignore') as f:
@@ -69,6 +74,15 @@ with open('scrubOut.txt',errors='ignore') as p:
                 buffer = []
             else:
                 buffer.append(line)
+deckArts = [rider, biddy]
+
+talkers = []
+chances = []
+with shelve.open(settings) as s:
+    for x in s:
+        if s[x]:
+            talkers.append(x)
+            chances.append(0)
 
 @client.event
 async def on_ready():
@@ -82,6 +96,9 @@ async def on_ready():
         f'{client.user} is connected to the following guild:\n'
         f'{guild.name}(id: {guild.id})'
     )
+
+
+    print(talkers)
 
 @client.event
 async def on_message(message):
@@ -170,11 +187,35 @@ async def on_message(message):
                 print('vibe adding')
                 await vibeAdd(message, meaningsChosen, client)
 
+            elif('serversettings' in message.content.lower()):
+                print("settings")
+                talks = await serverSettings(message, settings, client)
+                if (talks):
+                    with shelve.open(settings) as s:
+                        global talkers
+                        global chances
+                        talkers.append(message.channel.guild.id)
+                        chances.append(0)
+
             else:
                 found = await defs(message, meaningsChosen, client)
                 if (not found):
                     print("Pulling random")
                     await randomCard(message, meaningsChosen, client)
+    else:
+        global chance
+        for x in range(len(talkers)):
+            if talkers[x] == str(message.channel.guild.id):
+                num = random.randint(0,100)
+                print("Chance: "+ str(chances[x]) + " Num: "+ str(num))
+                if(num <= chances[x]):
+                    print("talking!")
+                    meaningsChosen = (biddy, random.choice(deckArts))
+                    chances[x] = 0
+                    await randomCard(message, meaningsChosen, client)
+                else:
+                    chances[x] += step
+
 
 
 
