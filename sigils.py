@@ -5,7 +5,4 @@ def sigils():
     with open("sparkSigil.magix",errors='ignore') as f:
         for line in f:
             print(line)
-    if(False):
-        with open("tripSigil.magix", errors='ignore') as f:
-            for line in f:
-                print(line)
+    

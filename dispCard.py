@@ -4,7 +4,7 @@ from discord import Embed
 import discord
 import asyncio
 
-
+# method for displaying a card to the user
 async def dispCard(message, meaningsChosen, client, card, rev):
     meanings = meaningsChosen[0]
     art = meaningsChosen[1]
@@ -20,19 +20,19 @@ async def dispCard(message, meaningsChosen, client, card, rev):
     def check(reaction, user):
         return user != mess.author and reaction.message.id == mess.id
     try:
-        reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
+        reaction, user = await client.wait_for('reaction_add', timeout=360.0, check=check)
     except asyncio.TimeoutError:
         print("timed out")
     else:
         if reaction.emoji == e1:
             if(rev == False):
                 if len(card.upB) > 2048:
-                    msg.set_footer(text = card.upB[:2048])
+                    msg.set_footer(text = card.upB[:2048].rpartition('.')[0] + '.')
                 else:
                     msg.set_footer(text = card.upB)
             else:
                 if len(card.revB) > 2048:
-                    msg.set_footer(text = card.revB[:2048])
+                    msg.set_footer(text = card.revB[:2048].rpartition('.')[0] + '.')
                 else:
                     msg.set_footer(text = card.revB)
         await mess.edit(embed = msg)

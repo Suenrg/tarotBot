@@ -15,14 +15,15 @@ async def serverSettings(message, url, client):
     def check(reaction, user):
             return user != mess.author and reaction.message.id == mess.id and user == message.author
     try:
-        reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
+        reaction, user = await client.wait_for('reaction_add', timeout=90.0, check=check)
     except asyncio.TimeoutError:
         print("timed out")
     else:
         if reaction.emoji == e1:
             talk = True
-            await message.channel.send("Gaia can now  talk freely!")
+            await message.channel.send("Gaia can now talk freely!")
         elif reaction.emoji == e2:
+            talk = False
             await message.channel.send("Gaia is gonna be quiet")
         else:
             talk = False
