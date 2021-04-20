@@ -13,7 +13,7 @@ from test import *
 from defs import *
 from draw import *
 from switchDeck import *
-from moon import *
+#from moon import *
 from daily import *
 from spreads import *
 from help import *
@@ -22,8 +22,9 @@ from sigils import *
 from vibes import *
 import random
 from serverSettings import *
+from multiPull import *
 
-class Card:
+class Card: #create the card class, for storing tarot card objects
     def __init__(self, name, up, rev, upB, revB, pic):
         self.name = name
         self.up = up
@@ -36,7 +37,7 @@ class Card:
 
 
 
-load_dotenv()
+load_dotenv() #token stuff
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
 
@@ -48,7 +49,7 @@ step = 1
 
 
 
-biddy = {}
+biddy = {} #load the biddy deck
 with open("detailedMeanings.txt",errors='ignore') as f:
     for line in f:
         #print(line)
@@ -56,9 +57,8 @@ with open("detailedMeanings.txt",errors='ignore') as f:
         #print(split)
         biddy[split[0]] = Card(split[0],split[1],split[2],split[3],split[4],split[5])
 
-#print(meanings)
 
-rider = {}
+rider = {} #load the rider deck
 with open('scrubOut.txt',errors='ignore') as p:
     buffer = []
     for line in p:
@@ -78,19 +78,21 @@ deckArts = [rider, biddy]
 
 talkers = []
 chances = []
-with shelve.open(settings) as s:
+
+with shelve.open(settings) as s: #load settings and make sure the talk chances shelf is working
     for x in s:
         if s[x]:
             talkers.append(x)
             chances.append(0)
 
-@client.event
+@client.event #discord login stuff
 async def on_ready():
     for guild in client.guilds:
         if guild.name == GUILD:
             break
     await client.change_presence(status=discord.Status.online, activity=discord.Game("!t help"))
-    sigils()
+
+    sigils() #gotta load the sigils
 
     print(
         f'{client.user} is connected to the following guild:\n'
@@ -102,11 +104,11 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if message.author == client.user:
+    if message.author == client.user: #don't talk to urself
         return
 
 
-    if message.content.startswith(prefix + 't') or client.user.mention.lower()[3:] in message.content.lower(): #check for prefix
+    if message.content.startswith(prefix + 't') or client.user.mention.lower()[3:] in message.content.lower(): #check for prefix or @
         #print(client.user.mention.lower()[3:])
         print("====================================")
         print(message)
@@ -118,95 +120,113 @@ async def on_message(message):
         preferences = 'preferences.txt'
         words = biddy
 
-        with shelve.open(preferences) as s:
+        with shelve.open(preferences) as s: #what art is this user using?
             ma = str(message.author)
-            if('cleansedata' in  message.content.lower()):
+            if('cleansedata' in  message.content.lower()): #cleanses data if gaia stops talking to you
                 s[ma] ={'art': "Rider"}
                 await message.channel.send('Your data has been cleansed! :)')
                 broken = True;
             if ma in s:
-                if ('art') in s[ma]:
+                if ('art') in s[ma]: #set their art to their preference
                     if s[ma]['art'] == 'Biddy':
                         art = biddy
                     elif s[ma]['art'] == 'Rider':
                         art = rider
                 else:
                     art = rider
-            else:
+            else: #if they aren't in the preferences just give them rider
                 art = rider
 
-        meaningsChosen = (words, art)
+        meaningsChosen = (words, art) #set the meanings/art for this msg
 
 
         if (broken == False):
-            if (message.content.startswith(prefix + 't help') or client.user.mention.lower()[:3] + " help" in message.content.lower()):
+            if (message.content.startswith(prefix + 't help') or client.user.mention.lower()[:3] + " help" in message.content.lower()): #checks if a user needs help
                 print('helping')
                 await help(message, client)
 
-            elif 'TesT' in message.content.lower() and broken == False:
+            elif 'TesT' in message.content.lower() and broken == False: #test command
                 print('testing')
                 await test(message, meaningsChosen)
                 broken = True
 
-            elif('chooseart' in message.content.lower() and broken == False):
+            elif('chooseart' in message.content.lower() and broken == False): # choose art command
                 print('art time')
                 await chooseArt(message, preferences, client)
                 broken = True
 
-            elif('moonphase' in message.content.lower() and broken == False):
+            elif('moonphase' in message.content.lower() and broken == False): #gets the moon phase / is a bit broken TODO
                 print('mooning')
-                await moon(message, True)
+                #await moon(message, True)
                 broken = True
 
-            elif('sleepmodenow'in message.content.lower() and broken == False):
+            elif('sleepmodenow'in message.content.lower() and broken == False): #lets me shut her off from discord
                 print('night night')
+                exit()
 
-            elif 'draw' in message.content.lower() and broken == False: # get a draw
+            elif 'draw' in message.content.lower() and broken == False: # draw 3 cards
                 print('Drawing')
                 tmp = await draw(message, meaningsChosen, True, message.author, client)
                 broken = True
 
-            elif ('peace' in message.content.lower() and broken == False):
-                print("Playing Peace")
-                await peace(message, meaningsChosen)
-                broken = True
+            # elif ('peace' in message.content.lower() and broken == False): #peace, tbf
+            #     print("Playing Peace")
+            #     await peace(message, meaningsChosen)
+            #     broken = True
 
-            elif ('daily' in message.content.lower()):
+            elif ('daily' in message.content.lower()): #pulls a daily card for the user
                 print('daily')
                 await daily(message, meaningsChosen, preferences, client)
 
-            elif ('spreads' in message.content.lower()):
+            elif ('spreads' in message.content.lower()):  #opens the spreads menu
                 print('spreads')
                 await spreads(message, meaningsChosen, client)
 
-            elif ('majors' in message.content.lower()):
+            elif ('majors' in message.content.lower()): #pulls a card from the major arcana
                 print('majors')
                 await majors(message, meaningsChosen, client)
 
-            elif ('addvibe' in message.content.lower()):
-                print('vibe adding')
-                await vibeAdd(message, meaningsChosen, client)
-
-            elif('serversettings' in message.content.lower()):
+            elif('serversettings' in message.content.lower()): #sets the current server's settings
                 print("settings")
                 talks = await serverSettings(message, settings, client)
-                if (talks):
+                id = str(message.channel.guild.id)
+                global talkers
+                global chances
+                if (id in talkers):
+                    if(not talks):
+                        print('not talking')
+                        index = talkers.index(id)
+                        del talkers[index]
+                        del chances[index]
+                elif (talks and not(id in talkers)):
                     with shelve.open(settings) as s:
-                        global talkers
-                        global chances
-                        talkers.append(message.channel.guild.id)
+                        talkers.append(id)
                         chances.append(0)
+                print (talkers)
+                print (chances)
 
-            else:
+            elif(message.content.lower().startswith('!t pull ')): #lets the user pull multiple cards at once
+                try:
+                    num = int(message.content.lower()[8]) #if they specified a number
+                except:
+                    await message.channel.send("Sorry, you have to specify a number")
+                else:
+                    print (num)
+                    if (num in range(0,10)):
+                        print('multipull')
+                        await multiPull(message, meaningsChosen, client, num)
+
+            else: #if they typed a prompt just give them random
                 found = await defs(message, meaningsChosen, client)
                 if (not found):
                     print("Pulling random")
                     await randomCard(message, meaningsChosen, client)
-    else:
-        global chance
-        for x in range(len(talkers)):
-            if talkers[x] == str(message.channel.guild.id):
-                num = random.randint(0,100)
+    else: #if the message isn't a command
+        # global chances #handles the code to get gaia talking
+        # global talkers
+        for x in range(len(talkers)):#loop through talkers
+            if talkers[x] == str(message.channel.guild.id): #if the guild we're in is in talkers
+                num = random.randint(0,100) #random chance
                 print("Chance: "+ str(chances[x]) + " Num: "+ str(num))
                 if(num <= chances[x]):
                     print("talking!")
