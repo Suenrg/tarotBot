@@ -1,6 +1,8 @@
 # Gaia - tarot bot for discord!
 Gaia is a discord bot that comes with a whole suite of tarot features!
 
+## invite link: https://discord.com/api/oauth2/authorize?client_id=737348289380483194&permissions=0&scope=bot
+
 ## Commands
 >!t help
 
