@@ -141,7 +141,14 @@ async def on_message(message):
 
 
         if (broken == False):
-            if (message.content.startswith(prefix + 't help') or client.user.mention.lower()[:3] + " help" in message.content.lower()): #checks if a user needs help
+
+
+            at = (client.user.mention.lower()[:2] + '!' + client.user.mention.lower()[2:])
+
+            #print(message.content.lower())
+        #    print(at)
+
+            if (message.content.startswith(prefix + 't help') or at + " help" in message.content.lower()): #checks if a user needs help
                 print('helping')
                 await help(message, client)
 
@@ -205,13 +212,16 @@ async def on_message(message):
                 print (talkers)
                 print (chances)
 
-            elif(message.content.lower().startswith('!t pull ')): #lets the user pull multiple cards at once
+            elif(message.content.lower().startswith('!t pull ') or message.content.lower().startswith(at + ' pull')): #lets the user pull multiple cards at once
                 try:
-                    num = int(message.content.lower()[8]) #if they specified a number
+                    if (message.content.lower().startswith('!t pull ')):
+                        num = int(message.content.lower()[8]) #if they specified a number
+                    else:
+                        num = int(message.content.lower()[28])
                 except:
                     await message.channel.send("Sorry, you have to specify a number")
                 else:
-                    print (num)
+                    #print ('num is ' + str(num))
                     if (num in range(0,10)):
                         print('multipull')
                         await multiPull(message, meaningsChosen, client, num)
